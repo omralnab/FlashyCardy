@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 
-import { deleteCard } from "@/app/actions/cards";
+import { deleteCard } from "@/lib/mutations/cards";
 import {
   AlertDialog,
   AlertDialogCancel,

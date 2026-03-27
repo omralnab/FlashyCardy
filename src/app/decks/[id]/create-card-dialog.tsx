@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 
-import { createCard } from "@/app/actions/cards";
+import { createCard } from "@/lib/mutations/cards";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

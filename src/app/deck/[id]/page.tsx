@@ -1,13 +1,14 @@
-import { redirect } from "next/navigation";
+import { DeckAliasRedirectClient } from "./deck-alias-redirect-client";
 
-type DeckRedirectProps = {
-  params: Promise<{ id: string }>;
-};
+export async function generateStaticParams() {
+  return [] as { id: string }[];
+}
 
-/**
- * Common typo: /deck/1 → /decks/1
- */
-export default async function DeckAliasRedirect({ params }: DeckRedirectProps) {
-  const { id } = await params;
-  redirect(`/decks/${encodeURIComponent(id)}`);
+/** Allows static export when params list is empty (see Next.js `output: "export"` + dynamic routes). */
+export const revalidate = 0;
+
+export const dynamicParams = false;
+
+export default function DeckAliasRedirectPage() {
+  return <DeckAliasRedirectClient />;
 }
