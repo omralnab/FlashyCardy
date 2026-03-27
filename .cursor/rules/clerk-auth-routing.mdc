@@ -1,0 +1,31 @@
+---
+description: Protected routes redirect unauthenticated users to the homepage (no dedicated sign-in page)
+alwaysApply: true
+---
+
+# Clerk auth routing
+
+This app does **not** have a dedicated sign-in or sign-up **page** (no `/sign-in` or `/sign-up` routes as the primary auth entry). Sign-in and sign-up are exposed from the **homepage** (`/`) and the global header (Clerk in modal mode with shadcn controls, per the shadcn UI rules).
+
+## Requirements
+
+- When unauthenticated users must be turned away from a **protected** route (Server Components, layouts, or middleware), send them to the **homepage** with `redirect("/")` (or the app’s configured home path), **not** to `/sign-in`, `/sign-up`, or other “login page” URLs.
+- Do not implement or document “redirect to the sign-in page” as the default unauthenticated flow for this project.
+
+## Disallowed patterns
+
+- `redirect("/sign-in")`, `redirect("/sign-up")`, or equivalent, as the standard gate for protected content when the product uses homepage-based auth.
+- Assuming Clerk hosted **page** routes at `/sign-in` / `/sign-up` exist in this codebase unless they are explicitly added later.
+
+## Preferred pattern
+
+```tsx
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+
+export default async function ProtectedPage() {
+  const { userId } = await auth();
+  if (!userId) redirect("/");
+  // ... load user-scoped data
+}
+```

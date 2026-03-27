@@ -1,0 +1,30 @@
+---
+description: Enforce Firestore (Firebase Admin) as the database layer
+alwaysApply: true
+---
+
+# Firestore-Only Database Interactions
+
+All application database interactions must use **Firestore** via the **Firebase Admin SDK** (server-side only).
+
+## Requirements
+
+- Use the Firebase Admin SDK (`firebase-admin`) for all reads/writes to Firestore.
+- Keep all database access **server-side** (Server Components, Server Actions, route handlers, scripts).
+- Centralize database access behind `src/db/queries/*` helpers.
+- Store ownership boundaries explicitly (e.g. `users/{clerkUserId}/...`) and never read/write user-owned data outside the authenticated user's scope.
+
+## Disallowed Patterns
+
+- Client Components importing Firestore/Admin SDKs or reading/writing Firestore directly.
+- Using the Firebase client SDK for server-side persistence logic.
+- Mixing multiple database layers for the same application data.
+
+## Preferred Pattern
+
+```ts
+import { firestore } from "@/db/firestore";
+
+const decksRef = firestore.collection(`users/${userId}/decks`);
+const snapshot = await decksRef.get();
+```

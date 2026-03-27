@@ -1,0 +1,79 @@
+---
+description: Centralize DB reads and writes in @/db/queries helper modules
+alwaysApply: true
+---
+
+# Data handling: `db/queries` helpers
+
+All **database fetching and mutations** used by application code must go through **helper functions** (query modules) living under **`src/db/queries/`**, imported as **`@/db/queries/...`**.
+
+## Requirements
+
+- **Reads and writes**: Implement Firestore reads/writes **only** inside files under `src/db/queries/`. Export named functions such as `getDeckByIdForUser`, `listCardsForDeck`, `insertDeckForUser`, etc.
+- **Call sites**: Server Components, Server Actions, route handlers, and other app layers **call these helpers** instead of importing Firestore directly and building queries inline.
+- **Ownership**: Helpers must respect **Clerk `userId` scoping** (accept `userId` from the caller after `auth()`, or document a narrow internal pattern that still guarantees isolation). Do not add queries that bypass user ownership when the data is user-owned.
+- **Stack**: Helpers use the **Firebase Admin Firestore** instance (e.g. `@/db/firestore`) and keep data server-side.
+
+## Disallowed patterns
+
+- Inline Firestore calls in pages, layouts, actions, or API routes **outside** `src/db/queries/`.
+- Duplicating the same Firestore query in multiple call sites instead of a single exported helper.
+- Client Components importing `@/db` or `@/db/queries` (unchanged: data access stays on the server; queries are invoked from Server Components / Server Actions / server-only code paths).
+
+## Allowed exceptions
+
+- **`src/db/`** infrastructure itself (`index.ts`, `schema.ts`, migrations) and one-off scripts under clearly non-app paths (e.g. `scripts/`) if the project uses them for migrations/seeds—not for normal request handling.
+
+## Preferred pattern
+
+```ts
+// src/db/queries/cards.ts
+import { firestore } from "@/db/firestore";
+
+export async function listCardsForDeck(deckId: string, userId: string) {
+  const cardsRef = firestore.collection(
+    `users/${userId}/decks/${deckId}/cards`,
+  );
+  const snapshot = await cardsRef.orderBy("updatedAt", "desc").get();
+  return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+```
+
+```tsx
+// app/decks/[id]/page.tsx — Server Component: no inline db.* here
+import { auth } from "@clerk/nextjs/server";
+import { listCardsForDeck } from "@/db/queries/cards";
+import { CardList } from "./card-list";
+
+export default async function DeckPage({ params }: { params: { id: string } }) {
+  const { userId } = await auth();
+  if (!userId) return null;
+
+  const rows = await listCardsForDeck(params.id, userId);
+  return <CardList initialCards={rows} />;
+}
+```
+
+```ts
+// app/actions/cards.ts
+"use server";
+
+import { auth } from "@clerk/nextjs/server";
+import { createCardSchema, type CreateCardInput } from "@/lib/validators/card";
+import { insertCardForUser } from "@/db/queries/cards";
+
+export async function createCard(input: CreateCardInput) {
+  const parsed = createCardSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false as const, error: parsed.error.flatten() };
+  }
+  const { userId } = await auth();
+  if (!userId) return { ok: false as const, error: "Unauthorized" };
+  await insertCardForUser(parsed.data, userId);
+  return { ok: true as const };
+}
+```
+
+This rule complements **Next.js Server Components / Server Actions + Zod** and **Drizzle-only** rules: those define *where* validation and mutations run; this rule defines *where* Drizzle calls live (`src/db/queries/`).
+
+This rule complements **Next.js Server Components / Server Actions + Zod**: those define *where* validation and mutations run; this rule defines *where* Firestore calls live (`src/db/queries/`).

@@ -1,0 +1,74 @@
+---
+description: Server Components for reads, Server Actions for mutations, Zod validation and typed payloads
+alwaysApply: true
+---
+
+# Next.js Data Layer: Server Components, Server Actions, Zod
+
+## Requirements
+
+- **Reads**: Load application data from the database in **Server Components** (async RSC). Pass results into Client Components via props when interactivity is needed.
+- **Writes**: Perform **inserts, updates, and deletes** only inside **`"use server"` Server Actions**, not from Client Components calling the DB directly and not via ad-hoc client-side mutation patterns that bypass server actions.
+- **Validation**: Validate all inputs that affect persistence or sensitive logic with **Zod** (`safeParse` / `parse` as appropriate).
+- **Server Action arguments**: Accept a **plain object (or primitives) typed with TypeScript**, derived from the Zod schema (`z.infer<typeof schema>` or an equivalent explicit type that matches the schema). **Do not** type server action parameters as `FormData` or rely on untyped bag-of-fields.
+
+## Disallowed Patterns
+
+- Client Components fetching DB-backed app data with `useEffect` + `fetch` when the same data can be loaded in a parent Server Component and passed down.
+- Mutations triggered from the client that hit arbitrary endpoints or inline logic instead of a dedicated Server Action (except documented exceptions like third-party webhooks).
+- Server Actions without Zod validation of external/client-supplied payloads.
+- Server Actions whose public signature is `(formData: FormData)` or otherwise untyped input; parsing `FormData` inside an action without a defined output type for the parsed shape.
+
+## Preferred Pattern
+
+```ts
+// lib/validators/card.ts
+import { z } from "zod";
+
+export const createCardSchema = z.object({
+  deckId: z.string().uuid(),
+  front: z.string().min(1),
+  back: z.string().min(1),
+});
+
+export type CreateCardInput = z.infer<typeof createCardSchema>;
+```
+
+```tsx
+// app/decks/[id]/page.tsx — Server Component: fetch here
+import { db } from "@/db";
+import { cards } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
+import { auth } from "@clerk/nextjs/server";
+import { CardList } from "./card-list";
+
+export default async function DeckPage({ params }: { params: { id: string } }) {
+  const { userId } = await auth();
+  if (!userId) return null;
+
+  const rows = await db
+    .select()
+    .from(cards)
+    .where(and(eq(cards.deckId, params.id), eq(cards.userId, userId)));
+
+  return <CardList initialCards={rows} />;
+}
+```
+
+```ts
+// app/actions/cards.ts
+"use server";
+
+import { createCardSchema, type CreateCardInput } from "@/lib/validators/card";
+
+export async function createCard(input: CreateCardInput) {
+  const parsed = createCardSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false as const, error: parsed.error.flatten() };
+  }
+  // ... auth, db insert with Drizzle, scoped by userId
+  return { ok: true as const };
+}
+```
+
+Client forms should call `createCard({ deckId, front, back })` with a typed object (or use `createCardSchema` on the client for UX validation only; the server must still validate with Zod).

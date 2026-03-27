@@ -1,0 +1,44 @@
+---
+alwaysApply: true
+---
+# shadcn UI (exclusive)
+
+**Only [shadcn UI](https://ui.shadcn.com/) components may be used for UI in this project.** All interactive and presentational UI must come from components installed via the shadcn CLI and imported from `@/components/ui/` (or the path in `components.json`).
+
+## Non-negotiables
+
+- **No custom UI components.** Do not create bespoke buttons, cards, inputs, dialogs, sheets, menus, tabs, or other UI primitives. If something is missing, add the corresponding shadcn component with the CLI and compose from that.
+- **No parallel UI libraries** for app chrome (e.g. no ad-hoc styled wrappers that duplicate shadcn patterns). Styling is limited to Tailwind + shadcn primitives as documented for this stack.
+- **No custom equivalents** of components that shadcn already provides—use the shadcn component.
+
+## Clerk authentication UI
+
+- **Sign-in and sign-up triggers** must use the shadcn **Button** component (from `@/components/ui/button`), not raw `<button>`, unstyled links, or Clerk’s default hosted button styling as the primary control.
+- **Sign-in and sign-up flows** must be opened inside a **modal** using the shadcn **Dialog** component (add with `pnpm dlx shadcn@latest add dialog` if needed). Embed Clerk `SignIn` / `SignUp` (or the project’s chosen Clerk components) inside the `Dialog` content so authentication is always launched from that modal—not from ad-hoc full-page custom auth screens.
+
+## Setup
+
+If shadcn UI is not initialized (no `components.json` in the project root), run:
+
+```bash
+pnpm dlx shadcn@latest init -t next
+```
+
+## Adding components
+
+When a particular component is needed but not yet installed, add it with the CLI. Example for the button component:
+
+```bash
+pnpm dlx shadcn@latest add button
+```
+
+For other components, replace `button` with the component name (e.g. `card`, `dialog`, `input`, `dropdown-menu`). Use the same pattern:
+
+```bash
+pnpm dlx shadcn@latest add <component-name>
+```
+
+## Usage
+
+- Import from `@/components/ui/` (or the path configured in `components.json`).
+- Compose screens only from shadcn primitives; business logic may live outside components, but **visible UI is shadcn-only.**

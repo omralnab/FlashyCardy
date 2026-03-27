@@ -1,0 +1,43 @@
+---
+description: Enforce Clerk-based per-user data isolation
+alwaysApply: true
+---
+
+# Clerk Data Isolation
+
+All authentication is handled by Clerk. Every data access must be scoped to the authenticated Clerk user.
+
+## Requirements
+
+- Use Clerk identity (`userId`) as the ownership boundary for user data.
+- Every create, read, update, and delete operation must include user ownership constraints.
+- Persist the owner field (for example `userId`) on user-owned records and query against it.
+- Treat missing auth context as unauthorized and return an auth error instead of running the query.
+
+## Disallowed Patterns
+
+- Queries that read or mutate user-owned data without filtering by the current Clerk `userId`.
+- Accepting owner identifiers from untrusted client input when server auth context is available.
+- Any code path that can return or mutate another user's records.
+
+## Preferred Pattern
+
+```ts
+import { auth } from "@clerk/nextjs/server";
+import { and, eq } from "drizzle-orm";
+import { db } from "@/db";
+import { flashcards } from "@/db/schema";
+
+const { userId } = await auth();
+if (!userId) throw new Error("Unauthorized");
+
+const rows = await db
+  .select()
+  .from(flashcards)
+  .where(eq(flashcards.userId, userId));
+
+await db
+  .update(flashcards)
+  .set({ front: "Updated" })
+  .where(and(eq(flashcards.id, cardId), eq(flashcards.userId, userId)));
+```
