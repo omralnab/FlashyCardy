@@ -1,43 +1,24 @@
 "use client";
 
-import { useAuth } from "@clerk/react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-
-import { DeckInvalidId } from "../../deck-not-found";
-import { StaticExportDeckUnavailable } from "../../static-export-deck-unavailable";
-import { parseDeckIdParam } from "@/lib/deck-id";
+import { CreateCardDialog } from "../../create-card-dialog";
 
 type NewCardPageClientProps = {
-  rawId: string;
+  deckId: string;
 };
 
-export function NewCardPageClient({ rawId }: NewCardPageClientProps) {
-  const idResult = parseDeckIdParam(rawId);
-  const { userId, isLoaded } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (isLoaded && !userId) {
-      router.replace("/");
-    }
-  }, [isLoaded, userId, router]);
-
-  if (!idResult.ok) {
-    return <DeckInvalidId />;
-  }
-
-  if (!isLoaded) {
-    return (
-      <section className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center px-4 py-12">
-        <p className="text-muted-foreground">Loading…</p>
-      </section>
-    );
-  }
-
-  if (!userId) {
-    return null;
-  }
-
-  return <StaticExportDeckUnavailable />;
+export function NewCardPageClient({ deckId }: NewCardPageClientProps) {
+  return (
+    <div className="flex flex-col items-start gap-4">
+      <p className="text-muted-foreground">
+        Add the front and back of your flashcard below.
+      </p>
+      <CreateCardDialog
+        deckId={deckId}
+        label="Add card"
+        buttonVariant="default"
+        buttonSize="lg"
+        showIcon={false}
+      />
+    </div>
+  );
 }

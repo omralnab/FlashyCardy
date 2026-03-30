@@ -13,16 +13,20 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-/** Static export cannot load Firestore-backed deck lists from the server. */
-export function DashboardClient() {
-  const { userId, isLoaded } = useAuth();
+export type DashboardDeckItem = {
+  id: string;
+  title: string;
+  description: string | null;
+  updatedAt: string;
+};
 
-  const decks: {
-    id: string;
-    title: string;
-    description: string | null;
-    updatedAt: Date;
-  }[] = [];
+type DashboardClientProps = {
+  initialDecks: DashboardDeckItem[];
+};
+
+export function DashboardClient({ initialDecks }: DashboardClientProps) {
+  const { userId, isLoaded } = useAuth();
+  const decks = initialDecks;
 
   if (!isLoaded) {
     return (
@@ -45,14 +49,6 @@ export function DashboardClient() {
         <CardDescription className="mt-2 text-base sm:text-lg">
           Manage your flashcard decks and study progress.
         </CardDescription>
-        <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-          Static export preview: deck lists from Firestore are not loaded in this
-          build. Use local dev without{" "}
-          <code className="rounded bg-muted px-1 py-0.5 text-xs">
-            output: &quot;export&quot;
-          </code>{" "}
-          for full data.
-        </p>
       </div>
 
       {decks.length === 0 ? (

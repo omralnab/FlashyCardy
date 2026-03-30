@@ -1,6 +1,7 @@
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 
 import { getFirestoreDb } from "@/db/firestore-admin";
+import { logFirestoreOperation } from "@/lib/firestore-log";
 
 import { getDeckByIdForUser } from "@/db/queries/decks";
 
@@ -40,6 +41,7 @@ export async function listCardsForDeck(
   deckId: string,
   userId: string,
 ): Promise<CardListRow[]> {
+  logFirestoreOperation("read", "listCardsForDeck", { deckId, userId });
   const deck = await getDeckByIdForUser(deckId, userId);
   if (!deck) return [];
 
@@ -62,6 +64,7 @@ export async function insertCardForUser(
   userId: string,
   input: { front: string; back: string },
 ): Promise<CardListRow | null> {
+  logFirestoreOperation("write", "insertCardForUser", { deckId, userId });
   const deck = await getDeckByIdForUser(deckId, userId);
   if (!deck) {
     return null;
@@ -93,6 +96,11 @@ export async function updateCardForUser(
   userId: string,
   input: { front: string; back: string },
 ): Promise<{ id: string; front: string; back: string } | null> {
+  logFirestoreOperation("write", "updateCardForUser", {
+    deckId,
+    cardId,
+    userId,
+  });
   const deck = await getDeckByIdForUser(deckId, userId);
   if (!deck) {
     return null;
@@ -125,6 +133,11 @@ export async function deleteCardForUser(
   cardId: string,
   userId: string,
 ): Promise<boolean> {
+  logFirestoreOperation("write", "deleteCardForUser", {
+    deckId,
+    cardId,
+    userId,
+  });
   const deck = await getDeckByIdForUser(deckId, userId);
   if (!deck) {
     return false;

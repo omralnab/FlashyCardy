@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Pencil } from "lucide-react";
 
-import { updateDeck } from "@/lib/mutations/decks";
+import { updateDeck } from "@/app/actions/decks";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

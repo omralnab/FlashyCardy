@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
-import { createDeck } from "@/lib/mutations/decks";
+import { createDeck } from "@/app/actions/decks";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

@@ -1,5 +1,9 @@
 import admin from "firebase-admin";
 
+import { getFirestoreDebugEnv } from "@/lib/firestore-log";
+
+let loggedInitContext = false;
+
 function initAdmin() {
   if (admin.apps.length > 0) return;
 
@@ -21,6 +25,13 @@ function initAdmin() {
       credential: admin.credential.cert(parsed),
       projectId: projectId ?? parsed.projectId,
     });
+    if (!loggedInitContext) {
+      loggedInitContext = true;
+      console.log(
+        "[flashycardy][firestore] Firebase Admin initialized (service account JSON)",
+        JSON.stringify(getFirestoreDebugEnv()),
+      );
+    }
     return;
   }
 
@@ -34,6 +45,13 @@ function initAdmin() {
       credential: admin.credential.applicationDefault(),
       projectId,
     });
+    if (!loggedInitContext) {
+      loggedInitContext = true;
+      console.log(
+        "[flashycardy][firestore] Firebase Admin initialized (application default credentials)",
+        JSON.stringify(getFirestoreDebugEnv()),
+      );
+    }
     return;
   }
 

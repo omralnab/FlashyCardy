@@ -21,13 +21,15 @@ export function FirestoreConfigError() {
             <code className="rounded bg-muted px-1 py-0.5 text-xs">
               FIREBASE_ADMIN_SERVICE_ACCOUNT_JSON
             </code>{" "}
-            to{" "}
+            with the full JSON from Firebase Console → Project settings →
+            Service accounts → Generate new private key. For local development,
+            put it in{" "}
             <code className="rounded bg-muted px-1 py-0.5 text-xs">
               .env.local
             </code>{" "}
-            (full JSON from Firebase Console → Project settings → Service
-            accounts → Generate new private key), then restart the dev server.
-            Public{" "}
+            and restart the dev server. On Vercel, add the same variable under
+            Project → Settings → Environment Variables (Production / Preview as
+            needed). Public{" "}
             <code className="rounded bg-muted px-1 py-0.5 text-xs">
               NEXT_PUBLIC_FIREBASE_*
             </code>{" "}

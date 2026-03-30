@@ -1,6 +1,7 @@
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 
 import { getFirestoreDb } from "@/db/firestore-admin";
+import { logFirestoreOperation } from "@/lib/firestore-log";
 
 function toDate(value: unknown): Date {
   if (value instanceof Date) return value;
@@ -40,6 +41,7 @@ function deckDocToRow(
 }
 
 export async function listDecksForUser(userId: string): Promise<DeckRow[]> {
+  logFirestoreOperation("read", "listDecksForUser", { userId });
   const db = getFirestoreDb();
   const snap = await db.collection(`users/${userId}/decks`).get();
 
@@ -52,6 +54,7 @@ export async function getDeckByIdForUser(
   deckId: string,
   userId: string,
 ): Promise<DeckRow | null> {
+  logFirestoreOperation("read", "getDeckByIdForUser", { deckId, userId });
   const db = getFirestoreDb();
   const ref = db.doc(`users/${userId}/decks/${deckId}`);
   const doc = await ref.get();
@@ -64,6 +67,7 @@ export async function updateDeckForUser(
   userId: string,
   input: { title: string; description?: string | null },
 ): Promise<DeckRow | null> {
+  logFirestoreOperation("write", "updateDeckForUser", { deckId, userId });
   const db = getFirestoreDb();
   const ref = db.doc(`users/${userId}/decks/${deckId}`);
   const doc = await ref.get();
@@ -83,6 +87,7 @@ export async function deleteDeckForUser(
   deckId: string,
   userId: string,
 ): Promise<boolean> {
+  logFirestoreOperation("write", "deleteDeckForUser", { deckId, userId });
   const db = getFirestoreDb();
   const ref = db.doc(`users/${userId}/decks/${deckId}`);
   const doc = await ref.get();
@@ -96,6 +101,7 @@ export async function insertDeckForUser(
   userId: string,
   input: { title: string; description?: string | null },
 ): Promise<DeckRow | null> {
+  logFirestoreOperation("write", "insertDeckForUser", { userId });
   const db = getFirestoreDb();
   const decksCol = db.collection(`users/${userId}/decks`);
   const ref = decksCol.doc();

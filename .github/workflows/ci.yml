@@ -1,8 +1,6 @@
 # Build verification on every push to main.
 #
-# This app uses Clerk, server components, and dynamic routes — it cannot be
-# statically exported to GitHub Pages (`output: "export"`). Host on Vercel,
-# Netlify, Cloudflare, or another Node-capable platform instead.
+# Production hosting should use a Node runtime (Vercel, Netlify, etc.).
 name: CI
 
 on:

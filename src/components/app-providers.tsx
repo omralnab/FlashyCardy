@@ -8,6 +8,7 @@ import {
   UserButton,
 } from "@clerk/react";
 import { Button } from "@/components/ui/button";
+import { ClientRuntimeLog } from "@/components/client-runtime-log";
 
 const clerkPublishableKey =
   process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "";
@@ -15,6 +16,7 @@ const clerkPublishableKey =
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider publishableKey={clerkPublishableKey}>
+      <ClientRuntimeLog />
       <div className="flex min-h-screen flex-col">
         <header className="flex items-center justify-between border-b border-white/10 bg-black/40 px-6 py-3 backdrop-blur">
           <div className="text-sm font-semibold tracking-tight text-slate-100">

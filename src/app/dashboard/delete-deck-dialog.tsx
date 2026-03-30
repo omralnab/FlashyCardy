@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 
-import { deleteDeck } from "@/lib/mutations/decks";
+import { deleteDeck } from "@/app/actions/decks";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -25,9 +25,15 @@ function truncateText(text: string, max: number) {
 type DeleteDeckDialogProps = {
   deckId: string;
   deckTitle: string;
+  /** Navigate here after a successful delete (e.g. `/dashboard` from the deck page). */
+  afterDelete?: string;
 };
 
-export function DeleteDeckDialog({ deckId, deckTitle }: DeleteDeckDialogProps) {
+export function DeleteDeckDialog({
+  deckId,
+  deckTitle,
+  afterDelete,
+}: DeleteDeckDialogProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +54,11 @@ export function DeleteDeckDialog({ deckId, deckTitle }: DeleteDeckDialogProps) {
       const result = await deleteDeck({ deckId });
       if (result.ok) {
         setOpen(false);
-        router.refresh();
+        if (afterDelete) {
+          router.push(afterDelete);
+        } else {
+          router.refresh();
+        }
         return;
       }
       if (typeof result.error === "string") {
